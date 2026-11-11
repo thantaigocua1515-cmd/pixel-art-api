@@ -62,3 +62,5 @@ Layout:
 - 3D models: [KayKit](https://github.com/KayKit-Game-Assets) by Kay Lousberg — **CC0**; [Quaternius](https://quaternius.com) — **CC0** (Ultimate Animated Character Pack via OpenGameArt, SHA-256 verified; FBX converted to GLB with Blender).
 - Generated SFX presets: [jsfxr](https://github.com/chr15m/jsfxr) — **Unlicense**; the rendered sounds are original output.
 - Note: Quaternius Monsters/Mech/Animals packs could not be mirrored yet (Google Drive download quota on the shared folders) — only the character pack is included for now.
+
+<!-- full 5-tab build: 8,889 files -->
