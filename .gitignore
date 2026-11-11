@@ -3,3 +3,6 @@ data-raw/
 node_modules/
 *.log
 .DS_Store
+
+# push working state
+push-state*.json
