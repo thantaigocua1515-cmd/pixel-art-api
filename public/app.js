@@ -123,6 +123,191 @@ document.getElementById("m-copy").addEventListener("click", async (e) => {
   setTimeout(() => (e.target.textContent = "Copy"), 1200);
 });
 
+// ================= VFX (pixelfx) =================
+const vfxGrid = document.getElementById("vfx-grid");
+const vfxStatus = document.getElementById("vfx-status");
+let vfxAll = null;
+let vfxFilter = { q: "", category: "" };
+
+const anims = new Set();
+function animLoop(t) {
+  for (const a of anims) {
+    const elapsed = t - a.start;
+    const frameMs = 1000 / a.e.fps;
+    let idx = Math.floor(elapsed / frameMs);
+    if (a.e.loop) {
+      idx %= a.e.frames;
+    } else if (idx >= a.e.frames) {
+      if (elapsed < a.e.frames * frameMs + 900) idx = a.e.frames - 1;
+      else { a.start = t; idx = 0; }
+    }
+    if (idx !== a.last) {
+      a.last = idx;
+      const sx = (idx % a.e.columns) * a.e.frameWidth;
+      const sy = Math.floor(idx / a.e.columns) * a.e.frameHeight;
+      const box = a.canvas.width;
+      const scale = Math.min(box / a.e.frameWidth, box / a.e.frameHeight);
+      const dw = Math.round(a.e.frameWidth * scale);
+      const dh = Math.round(a.e.frameHeight * scale);
+      const ctx = a.canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0, 0, box, box);
+      ctx.drawImage(a.img, sx, sy, a.e.frameWidth, a.e.frameHeight,
+        Math.round((box - dw) / 2), Math.round((box - dh) / 2), dw, dh);
+    }
+  }
+  requestAnimationFrame(animLoop);
+}
+requestAnimationFrame(animLoop);
+
+const vfxImgCache = new Map();
+function vfxImage(e) {
+  if (!vfxImgCache.has(e.id)) {
+    vfxImgCache.set(e.id, new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = e.sheet;
+    }));
+  }
+  return vfxImgCache.get(e.id);
+}
+
+const visObserver = new IntersectionObserver((entries) => {
+  for (const en of entries) {
+    const a = en.target._anim;
+    if (!a) continue;
+    if (en.isIntersecting) { a.start = performance.now() - (a.last || 0) * (1000 / a.e.fps); anims.add(a); }
+    else anims.delete(a);
+  }
+}, { rootMargin: "100px" });
+
+async function registerAnim(canvas, e, autostart) {
+  const img = await vfxImage(e);
+  const a = { canvas, e, img, start: performance.now(), last: -1 };
+  canvas._anim = a;
+  if (autostart) anims.add(a);
+  else visObserver.observe(canvas);
+  return a;
+}
+
+function vfxCard(e) {
+  const el = document.createElement("div");
+  el.className = "card";
+  const cv = document.createElement("canvas");
+  cv.width = 144; cv.height = 144;
+  const cap = document.createElement("div");
+  cap.className = "cap";
+  cap.textContent = e.name;
+  const subj = document.createElement("div");
+  subj.className = "subj";
+  subj.textContent = e.category;
+  const badge = document.createElement("span");
+  badge.className = "badge" + (e.loop ? "" : " once");
+  badge.textContent = `${e.frames}f · ${e.fps}fps · ${e.loop ? "loop" : "once"}`;
+  el.append(cv, cap, subj, badge);
+  registerAnim(cv, e, false);
+  el.addEventListener("click", () => openVfxModal(e));
+  return el;
+}
+
+function renderVfx() {
+  const words = vfxFilter.q.toLowerCase().split(/\s+/).filter(Boolean);
+  const out = vfxAll.filter((e) => {
+    if (vfxFilter.category && e.category !== vfxFilter.category) return false;
+    const hay = `${e.id} ${e.name} ${e.category} ${e.desc} ${(e.tags || []).join(" ")}`.toLowerCase();
+    return words.every((w) => hay.includes(w));
+  });
+  vfxGrid.innerHTML = "";
+  for (const e of out) vfxGrid.appendChild(vfxCard(e));
+  vfxStatus.textContent = `${out.length} effects${vfxFilter.category ? ` in ${vfxFilter.category}` : ""} — previews play live from the sheets`;
+}
+
+async function loadVfx() {
+  if (vfxAll) return;
+  vfxStatus.textContent = "Loading effects…";
+  const page1 = await fetch("/api/vfx?limit=200&offset=0").then((x) => x.json());
+  let all = page1.results;
+  if (page1.total > all.length) {
+    const page2 = await fetch(`/api/vfx?limit=200&offset=${all.length}`).then((x) => x.json());
+    all = all.concat(page2.results);
+  }
+  vfxAll = all;
+  const chips = document.getElementById("vfx-chips");
+  const cats = [...new Set(all.map((e) => e.category))].sort();
+  const mk = (label, cat) => {
+    const c = document.createElement("button");
+    c.type = "button";
+    c.className = "chip";
+    c.textContent = label;
+    c.addEventListener("click", () => { vfxFilter.category = cat; renderVfx(); });
+    chips.appendChild(c);
+  };
+  mk("all categories", "");
+  for (const cat of cats) mk(`${cat} · ${all.filter((e) => e.category === cat).length}`, cat);
+  renderVfx();
+}
+
+// ---- VFX modal ----
+const vfxModal = document.getElementById("vfx-modal");
+let vfxModalAnim = null;
+async function openVfxModal(e) {
+  document.getElementById("v-name").textContent = e.name;
+  document.getElementById("v-meta").textContent =
+    `${e.id} · ${e.frames} frames · ${e.fps} fps · ${e.loop ? "loops" : "plays once"} · frame ${e.frameWidth}×${e.frameHeight}${e.act ? " · acted move" : ""}`;
+  document.getElementById("v-desc").textContent = e.desc;
+  document.getElementById("v-sheet").href = e.sheet;
+  document.getElementById("v-json").href = e.json;
+  const api = `${location.origin}/api/vfx?id=${e.id}`;
+  document.getElementById("v-api").textContent = api;
+  document.getElementById("v-copy").onclick = async (ev) => {
+    await navigator.clipboard.writeText(api);
+    ev.target.textContent = "Copied!";
+    setTimeout(() => (ev.target.textContent = "Copy"), 1200);
+  };
+  document.getElementById("v-snippet").textContent =
+`const fx = await fetch('${location.origin}${e.json}').then(r => r.json());
+const img = new Image(); img.src = '${location.origin}${e.sheet}';
+await img.decode();
+// per frame i: drawImage(img, fx.frameRects[i].x, fx.frameRects[i].y,
+//   fx.frameWidth, fx.frameHeight, dx, dy, fx.frameWidth, fx.frameHeight)
+// advance i every 1000 / fx.fps ms${e.loop ? ", wrap at fx.frames" : ""}`;
+  vfxModal.classList.remove("hidden");
+  if (vfxModalAnim) anims.delete(vfxModalAnim);
+  vfxModalAnim = await registerAnim(document.getElementById("vfx-canvas"), e, true);
+}
+document.getElementById("vfx-close").addEventListener("click", () => {
+  vfxModal.classList.add("hidden");
+  if (vfxModalAnim) anims.delete(vfxModalAnim);
+});
+vfxModal.addEventListener("click", (e) => {
+  if (e.target === vfxModal) {
+    vfxModal.classList.add("hidden");
+    if (vfxModalAnim) anims.delete(vfxModalAnim);
+  }
+});
+document.getElementById("vfx-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  vfxFilter.q = document.getElementById("vfx-q").value.trim();
+  if (vfxAll) renderVfx();
+});
+
+// ---- tabs ----
+const tabSprites = document.getElementById("tab-sprites");
+const tabVfx = document.getElementById("tab-vfx");
+function switchTab(vfx) {
+  tabSprites.classList.toggle("active", !vfx);
+  tabVfx.classList.toggle("active", vfx);
+  document.getElementById("view-sprites").classList.toggle("hidden", vfx);
+  document.getElementById("view-vfx").classList.toggle("hidden", !vfx);
+  document.getElementById("search-form").classList.toggle("hidden", vfx);
+  document.getElementById("chips").classList.toggle("hidden", vfx);
+  document.getElementById("status").classList.toggle("hidden", vfx);
+  if (vfx) loadVfx();
+}
+tabSprites.addEventListener("click", () => switchTab(false));
+tabVfx.addEventListener("click", () => switchTab(true));
+
 // ---- wiring ----
 document.getElementById("search-form").addEventListener("submit", (e) => {
   e.preventDefault();

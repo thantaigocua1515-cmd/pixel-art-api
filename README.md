@@ -1,6 +1,6 @@
 # Pixel Art Atlas API
 
-Search and hot-link **1,409,404 free 16×16 pixel-art sprites** (6,194 subjects) through a tiny JSON/PNG API, with a built-in web viewer.
+Search and hot-link **1,409,404 free 16×16 pixel-art sprites** (6,194 subjects) plus **244 animated VFX** through a tiny JSON/PNG API, with a built-in web viewer.
 
 - **Live viewer:** search by caption words or subject, click any sprite for PNG links and atlas coordinates.
 - **Data source:** [Angais/pixel-art-atlas-1.4m](https://huggingface.co/datasets/Angais/pixel-art-atlas-1.4m) on Hugging Face — AI-generated sprites (Krea 2 Turbo + pixel-art LoRA) released by the dataset author under **CC0 1.0**. Captions are approximate; the release does not grant rights in third-party material or trademarks.
@@ -16,6 +16,8 @@ Search and hot-link **1,409,404 free 16×16 pixel-art sprites** (6,194 subjects)
 | `GET /api/subjects` | All 6,194 subjects with sprite counts. |
 | `GET /api/random?n=24` | Random sprites. |
 | `GET /atlases/sheet-000.webp` | Raw atlas sheets: 2048×2048 WebP, 128×128 grid of 16×16 sprites. |
+| `GET /api/vfx?q=explosion&category=fire&limit=60&offset=0` | Search 244 animated VFX (pixelfx, MIT): name, desc, tags, fps, frame count/size, pivot, sheet links. |
+| `GET /api/vfx?id=fire/campfire` | One effect's descriptor. Full sheet JSON (with per-frame rects) at `/vfx/fire/campfire.json`, sheet at `/vfx/fire/campfire.webp`. |
 
 Sprite → atlas mapping: `sheet = floor(id / 16384)`, `x = (id mod 128) * 16`, `y = floor((id mod 16384) / 128) * 16`.
 
