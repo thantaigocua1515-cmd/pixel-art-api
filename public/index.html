@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Art Atlas — 1.4M Sprites API</title>
+<meta name="description" content="Search and use 1,409,404 free 16x16 pixel art sprites through a simple API. CC0 dataset by Angais.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%2313141f'/><rect x='3' y='3' width='4' height='4' fill='%23ffd166'/><rect x='9' y='3' width='4' height='4' fill='%2306d6a0'/><rect x='3' y='9' width='4' height='4' fill='%23ef476f'/><rect x='9' y='9' width='4' height='4' fill='%23118ab2'/></svg>">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="logo">▦ PIXEL ART ATLAS</div>
+    <h1>1.4 million pixel sprites,<br>one simple API.</h1>
+    <p class="sub">Search <strong>1,409,404</strong> free 16×16 sprites across <strong>6,194</strong> subjects.
+    Use them in your games via direct PNG links or atlas sheets. No key, no signup.</p>
+    <form id="search-form" class="searchbar">
+      <input id="q" type="text" placeholder="Try “golden sword”, “potion”, “slime”, “knight helmet”…" autocomplete="off">
+      <input id="subject" type="text" list="subject-list" placeholder="Subject filter (optional)" autocomplete="off">
+      <datalist id="subject-list"></datalist>
+      <button type="submit">Search</button>
+      <button type="button" id="random-btn" class="ghost">🎲 Random</button>
+    </form>
+    <div id="chips" class="chips"></div>
+    <p id="status" class="status"></p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="grid" class="grid"></section>
+  <div class="center"><button id="more-btn" class="ghost hidden">Load more</button></div>
+
+  <section class="docs">
+    <h2>API reference</h2>
+    <div class="endpoint"><code>GET /api/search?q=golden+sword&amp;subject=&amp;limit=60&amp;offset=0</code>
+      <p>Full-text search over captions and subject names. Returns sprite metadata: id, caption, subject, atlas sheet and cell coordinates.</p></div>
+    <div class="endpoint"><code>GET /api/sprite?id=123&amp;scale=4</code>
+      <p>One sprite as a PNG, nearest-neighbour upscaled (scale 1–16, default 4). Long-lived CDN cache — hot-link it straight into your game.</p></div>
+    <div class="endpoint"><code>GET /api/info?id=123</code>
+      <p>Metadata for a single sprite as JSON.</p></div>
+    <div class="endpoint"><code>GET /api/subjects</code>
+      <p>All 6,194 subjects with sprite counts.</p></div>
+    <div class="endpoint"><code>GET /api/random?n=24</code>
+      <p>Random sprites — handy for placeholders and demos.</p></div>
+    <div class="endpoint"><code>GET /atlases/sheet-000.webp</code>
+      <p>Raw atlas sheets: 2048×2048 WebP, a 128×128 grid of 16×16 sprites. Sprite id → sheet = ⌊id / 16384⌋, x = (id mod 128) × 16, y = ⌊(id mod 16384) / 128⌋ × 16.</p></div>
+    <h3>Use it in a game (canvas)</h3>
+    <pre class="code">// find sprites
+const r = await fetch('/api/search?q=potion&amp;limit=24').then(r =&gt; r.json());
+const s = r.results[0];
+
+// draw one from its atlas sheet
+const img = new Image();
+img.src = s.atlas;                       // /atlases/sheet-003.webp
+await img.decode();
+ctx.imageSmoothingEnabled = false;
+ctx.drawImage(img, s.x, s.y, 16, 16, 0, 0, 64, 64);
+
+// or simply hot-link the PNG
+// &lt;img src="/api/sprite?id=123&amp;scale=4"&gt;</pre>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>Dataset: <a href="https://huggingface.co/datasets/Angais/pixel-art-atlas-1.4m" target="_blank" rel="noopener">Angais/pixel-art-atlas-1.4m</a>
+  — 1.4M AI-generated sprites (Krea 2 Turbo + pixel-art LoRA), released under <strong>CC0 1.0</strong> by the dataset author.
+  Captions are approximate. This site is an independent viewer/API, not affiliated with the dataset author or Krea.</p>
+</footer>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-card">
+    <button id="modal-close" class="modal-close" aria-label="Close">✕</button>
+    <div class="modal-preview"><canvas id="modal-canvas" width="256" height="256"></canvas></div>
+    <div class="modal-body">
+      <h3 id="m-caption"></h3>
+      <p class="m-meta" id="m-meta"></p>
+      <div class="m-row"><span>PNG</span>
+        <a id="m-png1" target="_blank" rel="noopener">×1</a>
+        <a id="m-png4" target="_blank" rel="noopener">×4</a>
+        <a id="m-png8" target="_blank" rel="noopener">×8</a>
+      </div>
+      <div class="m-row"><span>API</span><code id="m-api"></code>
+        <button id="m-copy" class="mini">Copy</button></div>
+      <div class="m-row"><span>Atlas</span><code id="m-atlas"></code></div>
+      <pre class="code" id="m-snippet"></pre>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
