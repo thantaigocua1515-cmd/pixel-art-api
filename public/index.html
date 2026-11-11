@@ -14,8 +14,9 @@
     <div class="logo">▦ PIXEL ART ATLAS</div>
     <h1>1.4 million pixel sprites,<br>one simple API.</h1>
     <p class="sub">Search <strong>1,409,404</strong> free 16×16 sprites across <strong>6,194</strong> subjects,
-    plus <strong>244 animated VFX</strong> (pixelfx) as ready-to-play sprite sheets.
-    Use them in your games via direct links or atlas sheets. No key, no signup.</p>
+    plus <strong>244 animated VFX</strong> (pixelfx), <strong>841 sound effects</strong> (Kenney + jsfxr),
+    <strong>4,045 3D models</strong> (KayKit, Kenney, Quaternius) and <strong>83 Kenney packs</strong> —
+    all free for your games via direct links. No key, no signup.</p>
     <form id="search-form" class="searchbar">
       <input id="q" type="text" placeholder="Try “golden sword”, “potion”, “slime”, “knight helmet”…" autocomplete="off">
       <input id="subject" type="text" list="subject-list" placeholder="Subject filter (optional)" autocomplete="off">
@@ -31,7 +32,10 @@
 <main class="wrap">
   <nav class="tabs">
     <button id="tab-sprites" class="tab active" type="button">🎨 Sprites</button>
-    <button id="tab-vfx" class="tab" type="button">✨ VFX · 244 effects</button>
+    <button id="tab-vfx" class="tab" type="button">✨ VFX · 244</button>
+    <button id="tab-sfx" class="tab" type="button">🔊 SFX · 841</button>
+    <button id="tab-models" class="tab" type="button">🧊 3D Models · 4,045</button>
+    <button id="tab-packs" class="tab" type="button">🧰 Kenney 2D · 40 packs</button>
   </nav>
 
   <div id="view-sprites">
@@ -47,6 +51,37 @@
     <div id="vfx-chips" class="chips"></div>
     <p id="vfx-status" class="status"></p>
     <section id="vfx-grid" class="grid"></section>
+  </div>
+
+  <div id="view-sfx" class="hidden">
+    <form id="sfx-form" class="searchbar vfxbar">
+      <input id="sfx-q" type="text" placeholder="Search sounds — “coin”, “explosion”, “click”, “laser”…" autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+    <div id="sfx-chips" class="chips"></div>
+    <p id="sfx-status" class="status"></p>
+    <section id="sfx-grid" class="grid"></section>
+  </div>
+
+  <div id="view-models" class="hidden">
+    <form id="models-form" class="searchbar vfxbar">
+      <input id="models-q" type="text" placeholder="Search models — “knight”, “chest”, “tree”, “car”…" autocomplete="off">
+      <button type="submit">Search</button>
+      <label class="checkline"><input type="checkbox" id="models-anim"> animated only</label>
+    </form>
+    <div id="models-chips" class="chips"></div>
+    <p id="models-status" class="status"></p>
+    <section id="models-grid" class="grid"></section>
+    <div class="center"><button id="models-more" class="ghost hidden">Load more</button></div>
+  </div>
+
+  <div id="view-packs" class="hidden">
+    <form id="packs-form" class="searchbar vfxbar">
+      <input id="packs-q" type="text" placeholder="Search packs — “ui”, “tiny”, “roguelike”, “platformer”…" autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+    <p id="packs-status" class="status"></p>
+    <section id="packs-grid" class="grid"></section>
   </div>
 
   <section class="docs">
@@ -70,6 +105,21 @@
       <p>One effect's descriptor. The full sheet JSON at <code>/vfx/fire/campfire.json</code> adds per-frame rects in the common atlas format <code>{frames: [{x, y, w, h}], fps …}</code> — it drops straight into FlowVFX-style loaders.</p></div>
     <div class="endpoint"><code>GET /vfx/fire/campfire.webp</code>
       <p>The effect's sprite sheet (lossless WebP, transparent). Play it by stepping frames at its fps; loop effects loop seamlessly.</p></div>
+    <h3>SFX — sound effects (Kenney CC0 + jsfxr)</h3>
+    <div class="endpoint"><code>GET /api/sfx?q=coin&amp;group=&amp;limit=60&amp;offset=0</code>
+      <p>Search 841 sounds: Kenney's CC0 audio packs (interface, impacts, RPG, sci-fi, jingles, voiceover…) plus 88 jsfxr-generated retro presets, each with its reproducible sfxr.me code.</p></div>
+    <div class="endpoint"><code>GET /api/sfx?id=kenney/interface-sounds/click_001</code>
+      <p>One sound's metadata; the file itself is at its <code>url</code> (OGG) — hot-link it into your game.</p></div>
+    <h3>3D Models — GLB (KayKit · Kenney · Quaternius, CC0)</h3>
+    <div class="endpoint"><code>GET /api/models?q=knight&amp;source=kaykit&amp;pack=&amp;animated=1&amp;limit=60&amp;offset=0</code>
+      <p>Search 4,045 GLB models: rigged animated characters, dungeon/city/nature kits and props. Returns download URL, size, animation count and a thumbnail.</p></div>
+    <div class="endpoint"><code>GET /api/models?id=kaykit/character-pack-adventures/Knight</code>
+      <p>One model's metadata. Kenney kit models share a palette texture — keep the pack's <code>Textures/</code> folder next to the GLBs (it sits beside them in <code>/models/kenney/&lt;pack&gt;/Textures/</code>).</p></div>
+    <h3>Kenney 2D — sprite &amp; UI packs (CC0)</h3>
+    <div class="endpoint"><code>GET /api/packs?q=ui&amp;limit=60&amp;offset=0</code>
+      <p>Browse 40 Kenney 2D packs (UI, roguelike, tiny series, platformer…). Small packs ship individual PNG tiles; large packs ship a generated contact sheet.</p></div>
+    <div class="endpoint"><code>GET /api/packs?id=kenney/ui-pack</code>
+      <p>One pack's contents: sheet URLs, tile URLs, and for contact-sheet packs the per-tile frame rects — the same atlas pattern as the sprite API.</p></div>
     <h3>Use it in a game (canvas)</h3>
     <pre class="code">// find sprites
 const r = await fetch('/api/search?q=potion&amp;limit=24').then(r =&gt; r.json());
@@ -91,6 +141,10 @@ ctx.drawImage(img, s.x, s.y, 16, 16, 0, 0, 64, 64);
   <p>Dataset: <a href="https://huggingface.co/datasets/Angais/pixel-art-atlas-1.4m" target="_blank" rel="noopener">Angais/pixel-art-atlas-1.4m</a>
   — 1.4M AI-generated sprites (Krea 2 Turbo + pixel-art LoRA), released under <strong>CC0 1.0</strong> by the dataset author.
   Captions are approximate. VFX: <a href="https://github.com/patch-gg/pixelfx" target="_blank" rel="noopener">pixelfx</a> by Patch — 244 code-generated pixel effects + 12 moves, <strong>MIT</strong>.
+  Assets: <a href="https://kenney.nl" target="_blank" rel="noopener">Kenney</a> (sprites, UI, 3D kits, audio — <strong>CC0</strong>),
+  <a href="https://github.com/KayKit-Game-Assets" target="_blank" rel="noopener">KayKit</a> by Kay Lousberg (<strong>CC0</strong>),
+  <a href="https://quaternius.com" target="_blank" rel="noopener">Quaternius</a> (<strong>CC0</strong>),
+  <a href="https://sfxr.me" target="_blank" rel="noopener">jsfxr</a> (Unlicense).
   This site is an independent viewer/API, not affiliated with the dataset author or Krea.</p>
 </footer>
 
@@ -127,6 +181,33 @@ ctx.drawImage(img, s.x, s.y, 16, 16, 0, 0, 64, 64);
       <div class="m-row"><span>API</span><code id="v-api"></code>
         <button id="v-copy" class="mini">Copy</button></div>
       <pre class="code" id="v-snippet"></pre>
+    </div>
+  </div>
+</div>
+
+<div id="model-modal" class="modal hidden">
+  <div class="modal-card">
+    <button id="model-close" class="modal-close" aria-label="Close">✕</button>
+    <div class="model-preview"><model-viewer id="model-viewer" camera-controls auto-rotate shadow-intensity="0.6"></model-viewer></div>
+    <div class="modal-body">
+      <h3 id="m3-name"></h3>
+      <p class="m-meta" id="m3-meta"></p>
+      <div class="m-row"><span>GLB</span><a id="m3-file" target="_blank" rel="noopener">Download .glb</a>
+        <span id="m3-tex"></span></div>
+      <div class="m-row"><span>API</span><code id="m3-api"></code>
+        <button id="m3-copy" class="mini">Copy</button></div>
+      <pre class="code" id="m3-snippet"></pre>
+    </div>
+  </div>
+</div>
+
+<div id="pack-modal" class="modal hidden">
+  <div class="modal-card wide">
+    <button id="pack-close" class="modal-close" aria-label="Close">✕</button>
+    <div class="modal-body">
+      <h3 id="pk-name"></h3>
+      <p class="m-meta" id="pk-meta"></p>
+      <div id="pk-content"></div>
     </div>
   </div>
 </div>
