@@ -81,6 +81,22 @@ button.mini { padding: 5px 12px; font-size: 13px; border-radius: 7px; }
 .center { text-align: center; padding: 12px 0 4px; }
 .hidden { display: none !important; }
 
+.tabs { display: flex; gap: 10px; padding-top: 22px; }
+.tab {
+  background: var(--panel); color: var(--dim); border: 1px solid var(--line);
+  padding: 10px 20px; font-size: 15px;
+}
+.tab.active { background: var(--acc); color: #191204; border-color: var(--acc); }
+.vfxbar { margin-top: 18px; }
+.vfxbar input { flex: 1 1 340px; }
+#vfx-grid .card canvas { width: 112px; height: 112px; }
+.card .badge {
+  display: inline-block; font-size: 10.5px; color: var(--bg); background: var(--acc2);
+  border-radius: 5px; padding: 1px 6px; margin-top: 4px; font-weight: 700;
+}
+.card .badge.once { background: var(--dim); }
+.v-desc { color: var(--dim); font-size: 14.5px; line-height: 1.5; margin: 0 0 14px; }
+
 .docs { padding: 34px 0 10px; }
 .docs h2 { font-size: 26px; margin: 0 0 16px; }
 .docs h3 { margin: 22px 0 8px; }

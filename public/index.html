@@ -13,8 +13,9 @@
   <div class="wrap">
     <div class="logo">▦ PIXEL ART ATLAS</div>
     <h1>1.4 million pixel sprites,<br>one simple API.</h1>
-    <p class="sub">Search <strong>1,409,404</strong> free 16×16 sprites across <strong>6,194</strong> subjects.
-    Use them in your games via direct PNG links or atlas sheets. No key, no signup.</p>
+    <p class="sub">Search <strong>1,409,404</strong> free 16×16 sprites across <strong>6,194</strong> subjects,
+    plus <strong>244 animated VFX</strong> (pixelfx) as ready-to-play sprite sheets.
+    Use them in your games via direct links or atlas sheets. No key, no signup.</p>
     <form id="search-form" class="searchbar">
       <input id="q" type="text" placeholder="Try “golden sword”, “potion”, “slime”, “knight helmet”…" autocomplete="off">
       <input id="subject" type="text" list="subject-list" placeholder="Subject filter (optional)" autocomplete="off">
@@ -28,8 +29,25 @@
 </header>
 
 <main class="wrap">
-  <section id="grid" class="grid"></section>
-  <div class="center"><button id="more-btn" class="ghost hidden">Load more</button></div>
+  <nav class="tabs">
+    <button id="tab-sprites" class="tab active" type="button">🎨 Sprites</button>
+    <button id="tab-vfx" class="tab" type="button">✨ VFX · 244 effects</button>
+  </nav>
+
+  <div id="view-sprites">
+    <section id="grid" class="grid"></section>
+    <div class="center"><button id="more-btn" class="ghost hidden">Load more</button></div>
+  </div>
+
+  <div id="view-vfx" class="hidden">
+    <form id="vfx-form" class="searchbar vfxbar">
+      <input id="vfx-q" type="text" placeholder="Search effects — “explosion”, “portal”, “slash”, “rain”…" autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+    <div id="vfx-chips" class="chips"></div>
+    <p id="vfx-status" class="status"></p>
+    <section id="vfx-grid" class="grid"></section>
+  </div>
 
   <section class="docs">
     <h2>API reference</h2>
@@ -45,6 +63,13 @@
       <p>Random sprites — handy for placeholders and demos.</p></div>
     <div class="endpoint"><code>GET /atlases/sheet-000.webp</code>
       <p>Raw atlas sheets: 2048×2048 WebP, a 128×128 grid of 16×16 sprites. Sprite id → sheet = ⌊id / 16384⌋, x = (id mod 128) × 16, y = ⌊(id mod 16384) / 128⌋ × 16.</p></div>
+    <h3>VFX — animated effects (pixelfx)</h3>
+    <div class="endpoint"><code>GET /api/vfx?q=explosion&amp;category=fire&amp;limit=60&amp;offset=0</code>
+      <p>Search 244 animated VFX (232 effects + 12 acted moves). Returns name, description, tags, fps, frame count/size, pivot and sheet links.</p></div>
+    <div class="endpoint"><code>GET /api/vfx?id=fire/campfire</code>
+      <p>One effect's descriptor. The full sheet JSON at <code>/vfx/fire/campfire.json</code> adds per-frame rects in the common atlas format <code>{frames: [{x, y, w, h}], fps …}</code> — it drops straight into FlowVFX-style loaders.</p></div>
+    <div class="endpoint"><code>GET /vfx/fire/campfire.webp</code>
+      <p>The effect's sprite sheet (lossless WebP, transparent). Play it by stepping frames at its fps; loop effects loop seamlessly.</p></div>
     <h3>Use it in a game (canvas)</h3>
     <pre class="code">// find sprites
 const r = await fetch('/api/search?q=potion&amp;limit=24').then(r =&gt; r.json());
@@ -65,7 +90,8 @@ ctx.drawImage(img, s.x, s.y, 16, 16, 0, 0, 64, 64);
 <footer class="wrap foot">
   <p>Dataset: <a href="https://huggingface.co/datasets/Angais/pixel-art-atlas-1.4m" target="_blank" rel="noopener">Angais/pixel-art-atlas-1.4m</a>
   — 1.4M AI-generated sprites (Krea 2 Turbo + pixel-art LoRA), released under <strong>CC0 1.0</strong> by the dataset author.
-  Captions are approximate. This site is an independent viewer/API, not affiliated with the dataset author or Krea.</p>
+  Captions are approximate. VFX: <a href="https://github.com/patch-gg/pixelfx" target="_blank" rel="noopener">pixelfx</a> by Patch — 244 code-generated pixel effects + 12 moves, <strong>MIT</strong>.
+  This site is an independent viewer/API, not affiliated with the dataset author or Krea.</p>
 </footer>
 
 <div id="modal" class="modal hidden">
@@ -84,6 +110,23 @@ ctx.drawImage(img, s.x, s.y, 16, 16, 0, 0, 64, 64);
         <button id="m-copy" class="mini">Copy</button></div>
       <div class="m-row"><span>Atlas</span><code id="m-atlas"></code></div>
       <pre class="code" id="m-snippet"></pre>
+    </div>
+  </div>
+</div>
+
+<div id="vfx-modal" class="modal hidden">
+  <div class="modal-card">
+    <button id="vfx-close" class="modal-close" aria-label="Close">✕</button>
+    <div class="modal-preview"><canvas id="vfx-canvas" width="288" height="288"></canvas></div>
+    <div class="modal-body">
+      <h3 id="v-name"></h3>
+      <p class="m-meta" id="v-meta"></p>
+      <p class="v-desc" id="v-desc"></p>
+      <div class="m-row"><span>Sheet</span><a id="v-sheet" target="_blank" rel="noopener">WebP sheet</a>
+        <a id="v-json" target="_blank" rel="noopener">Sheet JSON</a></div>
+      <div class="m-row"><span>API</span><code id="v-api"></code>
+        <button id="v-copy" class="mini">Copy</button></div>
+      <pre class="code" id="v-snippet"></pre>
     </div>
   </div>
 </div>
