@@ -293,7 +293,7 @@ document.getElementById("vfx-form").addEventListener("submit", (e) => {
 });
 
 // ---- tabs ----
-const VIEWS = ["sprites", "vfx", "sfx", "models", "packs"];
+const VIEWS = ["sprites", "vfx", "sfx", "models", "packs", "sakuga"];
 function switchView(name) {
   for (const mid of ["modal", "vfx-modal", "model-modal", "pack-modal"]) {
     document.getElementById(mid).classList.add("hidden");
@@ -311,6 +311,7 @@ function switchView(name) {
   if (name === "sfx") loadSfx();
   if (name === "models") loadModels();
   if (name === "packs") loadPacks();
+  if (name === "sakuga") loadSakuga();
 }
 for (const v of VIEWS) {
   document.getElementById("tab-" + v).addEventListener("click", () => switchView(v));
@@ -682,6 +683,91 @@ document.getElementById("pack-close").addEventListener("click", () => {
 document.getElementById("pack-modal").addEventListener("click", (e) => {
   if (e.target.id === "pack-modal") document.getElementById("pack-close").click();
 });
+
+// ================= SAKUGA UI =================
+// Sakuga VFX by Justin Finkelman (MIT): 11 anime-style UI components, each
+// one self-contained JS file defining a <sakuga-*> custom element. Scripts
+// are loaded lazily, once, the first time the tab opens; they share one
+// effects core (the first file loaded sets window.SakugaFX).
+let sakugaLoaded = false;
+const sakugaScripts = new Set();
+
+function loadScriptOnce(src) {
+  if (sakugaScripts.has(src)) return Promise.resolve();
+  sakugaScripts.add(src);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+function sakugaCard(c) {
+  const el = document.createElement("div");
+  el.className = "sakuga-card";
+  const h = document.createElement("h3");
+  h.textContent = c.title.replace(/^Sakuga /, "");
+  const tag = document.createElement("code");
+  tag.className = "sakuga-tag";
+  tag.textContent = "<" + c.element + ">";
+  h.appendChild(tag);
+  const stage = document.createElement("div");
+  stage.className = "sakuga-stage";
+  stage.innerHTML = c.demo;
+  const desc = document.createElement("p");
+  desc.className = "sakuga-desc";
+  desc.textContent = c.description;
+  const acts = document.createElement("div");
+  acts.className = "sakuga-acts";
+  const dl = document.createElement("a");
+  dl.className = "mini-link";
+  dl.href = c.file;
+  dl.textContent = `Download ${c.name}.js · ${Math.max(1, Math.round(c.bytes / 1024))} KB`;
+  const cp = document.createElement("button");
+  cp.type = "button";
+  cp.className = "mini";
+  cp.textContent = "Copy snippet";
+  cp.addEventListener("click", () => {
+    const demoHtml = c.demo.replace(' data-demo="save"', "").replace(" demo label", " label");
+    const snippet = `<script src="https://api-pixelart.vercel.app${c.file}"><\/script>\n${demoHtml}`;
+    navigator.clipboard.writeText(snippet).then(() => {
+      cp.textContent = "Copied ✓";
+      setTimeout(() => (cp.textContent = "Copy snippet"), 1500);
+    });
+  });
+  acts.append(dl, cp);
+  el.append(h, stage, desc, acts);
+  if (c.name === "button") {
+    const b = stage.querySelector("sakuga-button");
+    if (b) b.addEventListener("click", () => setTimeout(() => { if (b.done) b.done(); }, 400));
+  }
+  if (c.name === "toast") {
+    const save = stage.querySelector('[data-demo="save"]');
+    const t = stage.querySelector("sakuga-toast");
+    if (save && t) save.addEventListener("click", () => t.show("Saved successfully!"));
+  }
+  return el;
+}
+
+async function loadSakuga() {
+  if (sakugaLoaded) return;
+  sakugaLoaded = true;
+  const status = document.getElementById("sakuga-status");
+  status.textContent = "Loading components…";
+  try {
+    const idx = await fetch("/api/sakuga").then((x) => x.json());
+    for (const c of idx.components) await loadScriptOnce(c.file);
+    const grid = document.getElementById("sakuga-grid");
+    for (const c of idx.components) grid.appendChild(sakugaCard(c));
+    status.textContent =
+      `${idx.total} components by ${idx.author} · ${idx.license} — click, drag and type: every control reacts live.`;
+  } catch (e) {
+    status.textContent = "Could not load the Sakuga components.";
+    sakugaLoaded = false;
+  }
+}
 
 // ---- wiring ----
 document.getElementById("search-form").addEventListener("submit", (e) => {

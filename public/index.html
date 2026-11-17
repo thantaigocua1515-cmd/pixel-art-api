@@ -15,7 +15,8 @@
     <h1>1.4 million pixel sprites,<br>one simple API.</h1>
     <p class="sub">Search <strong>1,409,404</strong> free 16×16 sprites across <strong>6,194</strong> subjects,
     plus <strong>244 animated VFX</strong> (pixelfx), <strong>841 sound effects</strong> (Kenney + jsfxr),
-    <strong>4,101 3D models</strong> (KayKit, Kenney, Quaternius) and <strong>83 Kenney packs</strong> —
+    <strong>4,101 3D models</strong> (KayKit, Kenney, Quaternius), <strong>83 Kenney packs</strong> and
+    <strong>11 anime-style UI components</strong> (Sakuga VFX) —
     all free for your games via direct links. No key, no signup.</p>
     <form id="search-form" class="searchbar">
       <input id="q" type="text" placeholder="Try “golden sword”, “potion”, “slime”, “knight helmet”…" autocomplete="off">
@@ -36,6 +37,7 @@
     <button id="tab-sfx" class="tab" type="button">🔊 SFX · 841</button>
     <button id="tab-models" class="tab" type="button">🧊 3D Models · 4,101</button>
     <button id="tab-packs" class="tab" type="button">🧰 Kenney 2D · 40 packs</button>
+    <button id="tab-sakuga" class="tab" type="button">🎬 Sakuga UI · 11</button>
   </nav>
 
   <div id="view-sprites">
@@ -84,6 +86,18 @@
     <section id="packs-grid" class="grid"></section>
   </div>
 
+  <div id="view-sakuga" class="hidden">
+    <p class="sakuga-intro">Ordinary UI controls that react like anime — squash and overshoot on springs,
+    with drawn effects (smoke, impact bursts, splashes, slashes) and manga sound-effect lettering.
+    <strong>Sakuga VFX</strong> by <a href="https://github.com/finktheartist" target="_blank" rel="noopener">Justin Finkelman</a>
+    (<a href="https://github.com/finktheartist/sakuga-vfx" target="_blank" rel="noopener">repo</a> ·
+    <a href="https://sakuga-vfx.vercel.app" target="_blank" rel="noopener">original gallery</a>), <strong>MIT</strong> licensed.
+    Each component is <em>one self-contained JS file</em> — no dependencies, no build step: load it, then use its
+    <code>&lt;sakuga-*&gt;</code> element. The demos below are the real components, live.</p>
+    <p id="sakuga-status" class="status"></p>
+    <section id="sakuga-grid" class="sakuga-grid"></section>
+  </div>
+
   <section class="docs">
     <h2>API reference</h2>
     <div class="endpoint"><code>GET /api/search?q=golden+sword&amp;subject=&amp;limit=60&amp;offset=0</code>
@@ -120,6 +134,11 @@
       <p>Browse 40 Kenney 2D packs (UI, roguelike, tiny series, platformer…). Small packs ship individual PNG tiles; large packs ship a generated contact sheet.</p></div>
     <div class="endpoint"><code>GET /api/packs?id=kenney/ui-pack</code>
       <p>One pack's contents: sheet URLs, tile URLs, and for contact-sheet packs the per-tile frame rects — the same atlas pattern as the sprite API.</p></div>
+    <h3>Sakuga UI — anime-style UI components (MIT)</h3>
+    <div class="endpoint"><code>GET /api/sakuga</code>
+      <p>All 11 Sakuga VFX components: name, custom-element tag, description, usage docs and file link. Add <code>?name=button</code> for one component.</p></div>
+    <div class="endpoint"><code>GET /sakuga/button.js</code>
+      <p>One component as a plain script (the toggle is ~500 KB — its 43 painted frames are baked in; the rest are ~45 KB). Load it with a script tag, then use the element: <code>&lt;sakuga-button&gt;Confirm&lt;/sakuga-button&gt;</code>. Colours are <code>--sk-*</code> CSS variables you can override.</p></div>
     <h3>Use it in a game (canvas)</h3>
     <pre class="code">// find sprites
 const r = await fetch('/api/search?q=potion&amp;limit=24').then(r =&gt; r.json());
@@ -145,6 +164,7 @@ ctx.drawImage(img, s.x, s.y, 16, 16, 0, 0, 64, 64);
   <a href="https://github.com/KayKit-Game-Assets" target="_blank" rel="noopener">KayKit</a> by Kay Lousberg (<strong>CC0</strong>),
   <a href="https://quaternius.com" target="_blank" rel="noopener">Quaternius</a> (<strong>CC0</strong>),
   <a href="https://sfxr.me" target="_blank" rel="noopener">jsfxr</a> (Unlicense).
+  UI components: <a href="https://github.com/finktheartist/sakuga-vfx" target="_blank" rel="noopener">Sakuga VFX</a> by Justin Finkelman — 11 anime-style UI controls, <strong>MIT</strong>.
   This site is an independent viewer/API, not affiliated with the dataset author or Krea.</p>
 </footer>
 

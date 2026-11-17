@@ -164,3 +164,25 @@ button.mini { padding: 5px 12px; font-size: 13px; border-radius: 7px; }
 .m-row span { color: var(--dim); width: 44px; }
 .m-row a { font-weight: 600; }
 .m-row code { color: var(--acc); word-break: break-all; font-size: 13px; }
+
+.sakuga-intro { color: var(--dim); font-size: 15px; line-height: 1.55; max-width: 860px; margin: 20px 0 0; }
+.sakuga-intro strong { color: var(--text); }
+.sakuga-intro code { color: var(--acc); }
+.sakuga-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 16px; padding: 18px 0 8px;
+}
+.sakuga-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px; display: flex; flex-direction: column;
+}
+.sakuga-card h3 { margin: 0 0 10px; font-size: 16.5px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.sakuga-tag { color: var(--acc2); font-size: 12.5px; font-weight: 600; }
+.sakuga-stage {
+  background: #f6f4ff; border-radius: 10px; min-height: 148px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 20px; padding: 24px 16px;
+}
+.sakuga-desc { color: var(--dim); font-size: 13.5px; line-height: 1.5; margin: 12px 0 0; flex: 1; }
+.sakuga-acts { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+.sakuga-acts .mini-link { margin-top: 0; }
